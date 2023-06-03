@@ -18,7 +18,7 @@ use js_sys::JsString;
 use log::debug;
 use ndarray::Array1;
 use obsidian::App;
-use obsidian::semanticSearchSettings;
+use obsidian::pineconeSettings;
 use reqwest::header::HeaderMap;
 use serde::Deserialize;
 use serde::Serialize;
@@ -35,6 +35,7 @@ pub struct GenerateEmbeddingsCommand {
     file_processor: FileProcessor,
     client: Client,
     num_batches: u32,
+    pinecone_settings: pineconeSettings 
 }
 
 #[wasm_bindgen]
@@ -44,7 +45,7 @@ impl GenerateEmbeddingsCommand {
         let file_processor = FileProcessor::new(app.vault());
         let client = Client::new(settings.apiKey());
         let num_batches = settings.numBatches();
-        GenerateEmbeddingsCommand { file_processor, client, num_batches }
+        GenerateEmbeddingsCommand { file_processor, client, num_batches, pinecone_settings: settings.pineconeSettings()}
     }
 
     pub async fn get_embeddings(&self) -> Result<(), SemanticSearchError> {
@@ -85,14 +86,17 @@ impl GenerateEmbeddingsCommand {
                         };
                         let filename = &filename_header.0;
                         let header = &filename_header.1;
-                        let embedding = match &response.data.get(i) {
+                        let embedding: &Vec<f32>;
+                        let embedding_str = match &response.data.get(i) {
                             None => return Err(SemanticSearchError::GetEmbeddingsError(format!("Cannot find matching embedding for filename: {}, header: {}", filename, header)).into()),
-                            Some(embedding) => {
-                                let vec: Vec<String> = embedding.embedding.clone().into_iter().map(|f| f.to_string()).collect();
+                            Some(embedding_response) => {
+                                let embedding = embedding_response.embedding;
+                                let vec: Vec<String> = embedding.clone().into_iter().map(|f| f.to_string()).collect();
                                 vec.join(",")
                             }
                         };
-                        wtr.write_record(&[filename, header, &embedding])?;
+                        wtr.write_record(&[filename, header, &embedding_str])?;
+                        if self.settings.numBatches()
                     }
                 }
             }
@@ -214,8 +218,6 @@ pub struct Client {
 }
 
 /// Default v1 API base url
-pub const API_BASE: &str = "https://api.openai.com/v1";
-/// Name for organization header
 pub const ORGANIZATION_HEADER: &str = "OpenAI-Organization";
 
 impl Client {
