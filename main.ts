@@ -89,7 +89,13 @@ export default class SemanticSearch extends Plugin {
       ignoredFolders: "",
       sectionDelimeterRegex: '.',
       numBatches: 1,
-      enableLinkRecommendationSuggestor: false
+      enableLinkRecommendationSuggestor: false,
+      pineconeSettings: {
+	apiKey: '',
+	environment: '',
+	index: '',
+	enablePineconeUpload: false,
+      }
     }
 
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());

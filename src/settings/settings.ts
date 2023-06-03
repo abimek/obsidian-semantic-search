@@ -1,5 +1,12 @@
 import SemanticSearch from "main";
-import { App, PluginSettingTab, Setting, TextComponent } from "obsidian";
+import { App, PluginSettingTab, Setting, TextComponent, ToggleComponent } from "obsidian";
+
+export interface pineconeSettings {
+	enablePineconeUpload: boolean;
+	apiKey: string;
+	environment: string;
+	index: string;
+}
 
 export interface semanticSearchSettings {
 	apiKey: string;
@@ -7,6 +14,7 @@ export interface semanticSearchSettings {
   sectionDelimeterRegex: string;
   numBatches: number;
   enableLinkRecommendationSuggestor: boolean;
+  pineconeSettings: pineconeSettings;
 }
 
 export class SemanticSearchSettingTab extends PluginSettingTab {
@@ -93,6 +101,7 @@ export class SemanticSearchSettingTab extends PluginSettingTab {
         .setDynamicTooltip()
         .showTooltip());
 
+
     new Setting(containerEl)
     .setName("Enable link recommendation using {{}}")
     .setDesc("Typing '{{}}' will generate link recommendations for the text within the braces (requires reload).")
@@ -102,6 +111,47 @@ export class SemanticSearchSettingTab extends PluginSettingTab {
                  this.plugin.settings.enableLinkRecommendationSuggestor = value;
                  await this.plugin.saveSettings();
                }));
+
+    containerEl.createEl('h2', {text: 'Pinecone Settings'});
+    new Setting(containerEl)
+    .setName("Enable Pinecone")
+    .setDesc("Enables support for upload semantic search into a pinecone database")
+    .addToggle(toggleComponent => toggleComponent
+	        .setValue(this.plugin.settings.pineconeSettings.enablePineconeUpload)
+		.onChange(async (value) => {
+			this.plugin.settings.pineconeSettings.enablePineconeUpload = value;
+			await this.plugin.saveSettings();
+		}));
+    new Setting(containerEl)
+    .setName('Pinecone Api Key')
+    .setDesc('This is youre pinecone api key')
+    .addText((text) => text
+	     .setPlaceholder('insert key')
+	     .setValue(this.plugin.settings.pineconeSettings.apiKey)
+	     .onChange(async (value) => {
+		     this.plugin.settings.pineconeSettings.apiKey = value;
+		     await this.plugin.saveSettings();
+	     }),);
+    new Setting(containerEl)
+    .setName("Pinecone Environment")
+    .setDesc("This is youre pinecone environment / region")
+    .addText(text => text
+	     .setPlaceholder("insert region / environment")
+	     .setValue(this.plugin.settings.pineconeSettings.environment)
+	     .onChange(async (value) => {
+		     this.plugin.settings.pineconeSettings.environment = value;
+		     await this.plugin.saveSettings();
+	     }));
+    new Setting(containerEl)
+    .setName("Pinecone Index")
+    .setDesc("This is youre index / specific database")
+    .addText(text => text
+	     .setPlaceholder("insert index")
+	     .setValue(this.plugin.settings.pineconeSettings.index)
+	     .onChange(async (value) => {
+		     this.plugin.settings.pineconeSettings.index = value;
+		     await this.plugin.saveSettings();
+	     }));
 	}
 }
 

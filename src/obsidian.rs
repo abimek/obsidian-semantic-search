@@ -11,6 +11,18 @@ extern "C" {
     #[wasm_bindgen(method, getter)]
     pub fn settings(this: &Plugin) -> semanticSearchSettings;
 
+    pub type pineconeSettings;
+
+    #[wasm_bindgen(method, getter)]
+    pub fn apiKey(this: &pineconeSettings) -> String;
+    #[wasm_bindgen(method, getter)]
+    pub fn environment(this: &pineconeSettings) -> String;
+    #[wasm_bindgen(method, getter)]
+    pub fn index(this: &pineconeSettings) -> String;
+    #[wasm_bindgen(method, getter)]
+    pub fn enablePineconeUpload(this: &pineconeSettings) -> String;
+
+
     pub type semanticSearchSettings;
 
     #[wasm_bindgen(method, getter)]
@@ -21,6 +33,8 @@ extern "C" {
     pub fn sectionDelimeterRegex(this: &semanticSearchSettings) -> String;
     #[wasm_bindgen(method, getter)]
     pub fn numBatches(this: &semanticSearchSettings) -> u32;
+    #[wasm_bindgen]
+    pub fn pineconeSettings(this: &semanticSearchSettings) -> pineconeSettings;
 
     #[derive(Clone)]
     pub type App;
